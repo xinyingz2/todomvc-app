@@ -6,3 +6,19 @@ remove this comment if used
 remove this file if not
 
 */
+.todoapp h1 {
+	color: rgba(175, 47, 47, 0.15);
+}
+.info {
+	color: #bfbfbf;
+	font-size: 10px;
+}
+/* .main {
+    display: none;
+}
+.footer {
+    display: none;
+} */
+.filters li a.selected {
+	border-color: rgba(175, 47, 47, 0.2);
+}

@@ -1,63 +1,53 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Template • TodoMVC</title>
-		<link rel="stylesheet" href="node_modules/todomvc-common/base.css">
-		<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Native JavaScript • TodoMVC</title>
+		<link rel="stylesheet" href="node_modules/todomvc-common/base.css" />
+		<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css" />
 		<!-- CSS overrides - remove if you don't need it -->
-		<link rel="stylesheet" href="css/app.css">
+		<link rel="stylesheet" href="css/app.css" />
 	</head>
 	<body>
 		<section class="todoapp">
 			<header class="header">
 				<h1>todos</h1>
-				<input class="new-todo" placeholder="What needs to be done?" autofocus>
+				<input
+					class="new-todo"
+					placeholder="What needs to be done?"
+					autofocus
+				/>
 			</header>
 			<!-- This section should be hidden by default and shown when there are todos -->
-			<section class="main">
-				<input id="toggle-all" class="toggle-all" type="checkbox">
+			<section class="main" style="display: none">
+				<input id="toggle-all" class="toggle-all" type="checkbox" />
 				<label for="toggle-all">Mark all as complete</label>
 				<ul class="todo-list">
 					<!-- These are here just to show the structure of the list items -->
 					<!-- List items should get the class `editing` when editing and `completed` when marked as completed -->
-					<li class="completed">
-						<div class="view">
-							<input class="toggle" type="checkbox" checked>
-							<label>Taste JavaScript</label>
-							<button class="destroy"></button>
-						</div>
-						<input class="edit" value="Create a TodoMVC template">
-					</li>
-					<li>
-						<div class="view">
-							<input class="toggle" type="checkbox">
-							<label>Buy a unicorn</label>
-							<button class="destroy"></button>
-						</div>
-						<input class="edit" value="Rule the web">
-					</li>
 				</ul>
 			</section>
 			<!-- This footer should be hidden by default and shown when there are todos -->
-			<footer class="footer">
+			<footer class="footer" style="display: none">
 				<!-- This should be `0 items left` by default -->
 				<span class="todo-count"><strong>0</strong> item left</span>
 				<!-- Remove this if you don't implement routing -->
 				<ul class="filters">
 					<li>
-						<a class="selected" href="#/">All</a>
+						<a title="All" class="selected" href="#/">All</a>
 					</li>
 					<li>
-						<a href="#/active">Active</a>
+						<a title="Active" href="#/active">Active</a>
 					</li>
 					<li>
-						<a href="#/completed">Completed</a>
+						<a title="Completed" href="#/completed">Completed</a>
 					</li>
 				</ul>
 				<!-- Hidden if no completed items are left ↓ -->
-				<button class="clear-completed">Clear completed</button>
+				<button class="clear-completed" style="display: none">
+					Clear completed
+				</button>
 			</footer>
 		</section>
 		<footer class="info">
@@ -65,11 +55,385 @@
 			<!-- Remove the below line ↓ -->
 			<p>Template by <a href="http://sindresorhus.com">Sindre Sorhus</a></p>
 			<!-- Change this out with your name and url ↓ -->
-			<p>Created by <a href="http://todomvc.com">you</a></p>
+			<p>Created by <a href="http://todomvc.com">Xinying Zhou</a></p>
 			<p>Part of <a href="http://todomvc.com">TodoMVC</a></p>
 		</footer>
 		<!-- Scripts here. Don't remove ↓ -->
 		<script src="node_modules/todomvc-common/base.js"></script>
 		<script src="js/app.js"></script>
+
+		<script>
+			window.addEventListener("hashchange", handleHashChange);
+			const ENTER_KEY = 13;
+			const footer = document.querySelector(".footer");
+			const main = document.querySelector(".main");
+			const todoList = document.querySelector(".todo-list");
+			const todoCount = document.querySelector(".todo-count");
+			const filterParent = document.querySelector(".filters");
+			const input = document.querySelector(".new-todo");
+			const clearCompleted = document.querySelector(".clear-completed");
+			const toggleAll = document.querySelector(".toggle-all");
+			const filters = [...filterParent.children].map((li) => li.children[0]);
+
+			filters.forEach((a) => a.addEventListener("click", filterTodo));
+
+			if (input) {
+				input.addEventListener("keyup", createTodo);
+			}
+
+			if (clearCompleted) {
+				clearCompleted.addEventListener("click", clearCompletedTodo);
+			}
+
+			if (toggleAll) {
+				toggleAll.addEventListener("click", toggleTodo);
+			}
+
+			function handleHashChange(e) {
+				//TODO: Routing
+			}
+
+			function checkStatus() {
+				//1.先找出目前哪个status是checked的状态
+				const title = filters
+					.find((a) => a.classList.contains("selected"))
+					?.title.toUpperCase();
+				const todos = [...todoList.children];
+				if (title === "ACTIVE") {
+					todos
+						.filter((todo) => todo.classList.contains("completed"))
+						.forEach((todo) => todo.classList.add("hidden"));
+
+					todos
+						.filter((todo) => !todo.classList.contains("completed"))
+						.forEach((todo) => {
+							if (todo.classList.contains("hidden")) {
+								todo.classList.remove("hidden");
+							}
+						});
+				} else if (title === "COMPLETED") {
+					todos
+						.filter((todo) => todo.classList.contains("completed"))
+						.forEach((todo) => {
+							if (todo.classList.contains("hidden")) {
+								todo.classList.remove("hidden");
+							}
+						});
+
+					todos
+						.filter((todo) => !todo.classList.contains("completed"))
+						.forEach((todo) => todo.classList.add("hidden"));
+				}
+			}
+
+			function toggleTodo(e) {
+				//TODO: 是否需要去掉 hidden class
+				if (e.target.checked) {
+					//1.把所有li加上completed class
+					const todos = [...todoList.children];
+					const filterList = todos.filter(
+						(todo) => !todo.classList.contains("completed")
+					);
+					filterList.forEach((todo) => {
+						todo.classList.add("completed");
+						todo.firstElementChild.firstElementChild.checked = true;
+					});
+					//2.item减减
+					filterList.forEach(() => count.call(this, false));
+					//3.显示clear completed btn
+					showClearCompletedBtn(true);
+					//4.检查目前的状态：active completed
+					checkStatus();
+				} else {
+					//1.去掉li上的completed class
+					const todos = [...todoList.children];
+					const filterList = todos.filter((todo) =>
+						todo.classList.contains("completed")
+					);
+					filterList.forEach((todo) => {
+						todo.classList.remove("completed");
+						todo.firstElementChild.firstElementChild.checked = false;
+					});
+					//2.item加回来
+					filterList.forEach(() => count.call(this, true));
+					//3.隐藏clear completed btn
+					showClearCompletedBtn(false);
+					//4.检查目前的状态：active completed
+					checkStatus();
+				}
+			}
+
+			function filterTodo(e) {
+				const title = e.target.title.toUpperCase();
+				const todos = [...todoList.children];
+				if (title === "ALL") {
+					filters.forEach((a) => a.classList.remove("selected"));
+					//为 all 的 a标签加上selected class
+					filters
+						.find((a) => a.title.toUpperCase() === title)
+						?.classList.add("selected");
+					//去掉所有有hidden class的元素上的hidden class
+					todos
+						.filter((todo) => todo.classList.contains("hidden"))
+						.forEach((todo) => todo.classList.remove("hidden"));
+				} else if (title === "ACTIVE") {
+					filters.forEach((a) => a.classList.remove("selected"));
+					//为 active 的 a标签加上selected class
+					filters
+						.find((a) => a.title.toUpperCase() === title)
+						?.classList.add("selected");
+					//找出li的class为complated的元素，加上hidden class
+					//console.log(todos);
+					todos
+						.filter((todo) => todo.classList.contains("completed"))
+						.forEach((todo) => todo.classList.add("hidden"));
+
+					todos
+						.filter((todo) => !todo.classList.contains("completed"))
+						.forEach((todo) => {
+							if (todo.classList.contains("hidden")) {
+								todo.classList.remove("hidden");
+							}
+						});
+				} else if (title === "COMPLETED") {
+					filters.forEach((a) => a.classList.remove("selected"));
+					//为 active 的 a标签加上selected class
+					filters
+						.find((a) => a.title.toUpperCase() === title)
+						?.classList.add("selected");
+					//找出li的class为空的元素，加上hidden class，去掉completed元素上的hidden class
+					todos
+						.filter((todo) => todo.classList.contains("completed"))
+						.forEach((todo) => {
+							if (todo.classList.contains("hidden")) {
+								todo.classList.remove("hidden");
+							}
+						});
+
+					todos
+						.filter((todo) => !todo.classList.contains("completed"))
+						.forEach((todo) => todo.classList.add("hidden"));
+				}
+			}
+
+			function createTodo(e) {
+				const todo = e.target.value.trim();
+				//console.log(`key code is: ${e.keyCode}`);
+				if (e.keyCode !== ENTER_KEY || todo.length === 0) {
+					return;
+				}
+
+				e.target.value = "";
+				main.style.display = "block"; //TODO:  block when first todo is created
+				footer.style.display = "block"; //TODO: block when first todo is created
+
+				const newLi = document.createElement("li");
+				const newDiv = document.createElement("div");
+				const newInputToggle = document.createElement("input");
+				const newLabel = document.createElement("label");
+				const newBtn = document.createElement("button");
+				const newInputEdit = document.createElement("input");
+				const newLabelContent = document.createTextNode(todo);
+
+				newDiv.classList.add("view");
+				newInputToggle.classList.add("toggle");
+				newInputToggle.setAttribute("type", "checkbox");
+				newBtn.classList.add("destroy");
+				newInputEdit.classList.add("edit");
+				newInputEdit.setAttribute("value", todo);
+
+				newLabel.appendChild(newLabelContent);
+				newLi.appendChild(newDiv);
+				newLi.appendChild(newInputEdit);
+				newDiv.appendChild(newInputToggle);
+				newDiv.appendChild(newLabel);
+				newDiv.appendChild(newBtn);
+				todoList.appendChild(newLi);
+
+				newLabel.addEventListener("dblclick", editTodo);
+
+				//newLi.addEventListener("dblclick", editTodo);
+				newInputEdit.addEventListener("blur", saveTodoBlur);
+				newInputEdit.addEventListener("keyup", saveTodoEnter);
+				newInputToggle.addEventListener("click", completeTodo);
+				newBtn.addEventListener("click", destroy);
+
+				count.call(this, true); //true is increment, false is decrement
+			}
+
+			function count(isIncrement) {
+				const strongNode = todoCount.querySelector("strong");
+				let curCount = parseInt(strongNode.innerHTML);
+				if (isIncrement) {
+					curCount++;
+				} else {
+					curCount = curCount > 0 ? --curCount : 0;
+				}
+				strongNode.innerHTML = curCount;
+			}
+
+			function editTodo(e) {
+				//1.change to editing node
+				this.parentNode.parentNode.classList.add("editing");
+				const editInput = this.parentNode.parentNode.querySelector(".edit");
+				if (editInput) {
+					editInput.focus();
+					//to place cursor at the end of text in input element
+					const value = editInput.value;
+					editInput.value = "";
+					editInput.value = value;
+				}
+			}
+
+			function saveTodoBlur(e) {
+				saveTodo.call(this, e);
+			}
+
+			function saveTodo(e) {
+				const todo = e.target.value.trim();
+
+				if (todo.length === 0) {
+					const curLi = this.parentNode;
+					//前提：是未complated的元素，count要减一
+					if (!curLi.classList.contains("completed")) {
+						count.call(this, false);
+					}
+					//当前点击的li元素destroy
+					curLi.remove();
+					//检查是否还有剩余元素，没有的话要隐藏main/footer
+					if (!todoList.children.length) {
+						main.style.display = "none";
+						footer.style.display = "none";
+						showClearCompletedBtn(false);
+					} else {
+						const todos = [...todoList.children];
+						if (
+							todos.filter((todo) => todo.classList.contains("completed"))
+								.length
+						) {
+							showClearCompletedBtn(true);
+						} else {
+							showClearCompletedBtn(false);
+						}
+					}
+					//destroy(this, e);
+				} else {
+					//remove 'editing' class
+					this.parentNode.classList.remove("editing");
+					this.parentNode
+						.querySelector(".view")
+						.querySelector("label").innerHTML = todo;
+				}
+			}
+
+			function saveTodoEnter(e) {
+				if (e.keyCode !== ENTER_KEY) {
+					return;
+				}
+				saveTodo.call(this, e);
+			}
+
+			function destroy(e) {
+				const curLi = this.parentNode.parentNode;
+				//前提：是未complated的元素，count要减一
+				if (!curLi.classList.contains("completed")) {
+					count.call(this, false);
+				}
+				//当前点击的li元素destroy
+				curLi.remove();
+				//检查是否还有剩余元素，没有的话要隐藏main/footer
+				if (!todoList.children.length) {
+					main.style.display = "none";
+					footer.style.display = "none";
+					showClearCompletedBtn(false);
+				} else {
+					const todos = [...todoList.children];
+					if (
+						todos.filter((todo) => todo.classList.contains("completed")).length
+					) {
+						showClearCompletedBtn(true);
+					} else {
+						showClearCompletedBtn(false);
+					}
+				}
+				//检查是否需要隐藏 clear completed button
+			}
+
+			function showClearCompletedBtn(isShow) {
+				if (isShow) {
+					clearCompleted.style.display = "block";
+				} else {
+					clearCompleted.style.display = "none";
+				}
+			}
+
+			function completeTodo(e) {
+				//console.log("complete");
+				if (this.checked) {
+					this.parentNode.parentNode.classList.add("completed");
+					count.call(this, false);
+					showClearCompletedBtn(true);
+					const todos = [...todoList.children];
+					//update 'toggle-all'
+					toggleAll.checked =
+						todos.length ===
+						todos.filter((todo) => todo.classList.contains("completed")).length;
+					//console.log(toggleAll.checked);
+				} else {
+					this.parentNode.parentNode.classList.remove("completed");
+					count.call(this, true);
+					//检查剩下多少个completed元素
+					const todos = [...todoList.children];
+					if (
+						todos.filter((todo) => todo.classList.contains("completed")).length
+					) {
+						showClearCompletedBtn(true);
+					} else {
+						showClearCompletedBtn(false);
+					}
+					//update 'toggle-all'
+					toggleAll.checked =
+						todos.length ===
+						todos.filter((todo) => todo.classList.contains("completed")).length;
+					//console.log(toggleAll.checked);
+				}
+			}
+
+			function clearCompletedTodo(e) {
+				//1.检查有多少个completed元素，然后把这个元素destroy
+				const todos = [...todoList.children];
+				//console.log(todos);
+				const filterTodos = todos.filter((todo) =>
+					todo.classList.contains("completed")
+				);
+				filterTodos.forEach((todo) => todo.remove());
+				//3.检查是否还有剩余todo，没有的话，隐藏footer/main
+				if (todos.length === filterTodos.length) {
+					main.style.display = "none";
+					footer.style.display = "none";
+				}
+				//2.隐藏clear completed button
+				showClearCompletedBtn(false);
+				//4.去掉 toggle-all 的 checked
+				toggleAll.checked = false;
+			}
+		</script>
 	</body>
 </html>
+
+<!-- <li class="completed">
+	<div class="view">
+		<input class="toggle" type="checkbox" checked />
+		<label>Taste JavaScript</label>
+		<button class="destroy"></button>
+	</div>
+	<input class="edit" value="Create a TodoMVC template" />
+</li>
+<li>
+	<div class="view">
+		<input class="toggle" type="checkbox" />
+		<label>Buy a unicorn</label>
+		<button class="destroy"></button>
+	</div>
+	<input class="edit" value="Rule the web" />
+</li> -->
