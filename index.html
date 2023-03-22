@@ -35,7 +35,7 @@
 				<!-- Remove this if you don't implement routing -->
 				<ul class="filters">
 					<li>
-						<a title="All" class="selected" href="#/">All</a>
+						<a title="All" href="#/">All</a>
 					</li>
 					<li>
 						<a title="Active" href="#/active">Active</a>
@@ -60,10 +60,18 @@
 		</footer>
 		<!-- Scripts here. Don't remove ↓ -->
 		<script src="node_modules/todomvc-common/base.js"></script>
+		<!-- <script src="node_modules/nanoid/nanoid.js"></script> -->
+		<!-- 		<script type="module" src="js/modules/random.js"></script> -->
+		<!-- <script type="module">
+			import { nanoid } from "./js/modules/random.js";
+			alert(nanoid());
+		</script> -->
 		<script src="js/app.js"></script>
 
 		<script>
-			window.addEventListener("hashchange", handleHashChange);
+			//alert(guid());
+			window.addEventListener("load", load);
+			//window.addEventListener("hashchange", handleHashChange);
 			const ENTER_KEY = 13;
 			const footer = document.querySelector(".footer");
 			const main = document.querySelector(".main");
@@ -89,8 +97,122 @@
 				toggleAll.addEventListener("click", toggleTodo);
 			}
 
+			function load() {
+				if (!localStorage.length) {
+					return;
+				}
+				const keys = [];
+				for (let i = 0; i < localStorage.length; i++) {
+					keys.push(localStorage.key(i));
+				}
+				//console.log(keys);
+				const items = keys.map((key) => {
+					return JSON.parse(localStorage.getItem(key));
+				});
+
+				//console.log(items);
+				//还原todo
+				restoreTodo(items);
+			}
+
+			function restoreTodo(items) {
+				main.style.display = "block"; //TODO:  block when first todo is created
+				footer.style.display = "block"; //TODO: block when first todo is created
+
+				for (let i = 0; i < items.length; i++) {
+					const newLi = document.createElement("li");
+					const newDiv = document.createElement("div");
+					const newInputToggle = document.createElement("input");
+					const newLabel = document.createElement("label");
+					const newBtn = document.createElement("button");
+					const newInputEdit = document.createElement("input");
+					const newLabelContent = document.createTextNode(items[i].title);
+
+					newLi.setAttribute("id", items[i].id);
+					newDiv.classList.add("view");
+					newInputToggle.classList.add("toggle");
+					newInputToggle.setAttribute("type", "checkbox");
+					newBtn.classList.add("destroy");
+					newInputEdit.classList.add("edit");
+					newInputEdit.setAttribute("value", items[i].title);
+					if (items[i].completed) {
+						newLi.classList.add("completed");
+						newInputToggle.setAttribute("checked", "");
+					}
+
+					newLabel.appendChild(newLabelContent);
+					newLi.appendChild(newDiv);
+					newLi.appendChild(newInputEdit);
+					newDiv.appendChild(newInputToggle);
+					newDiv.appendChild(newLabel);
+					newDiv.appendChild(newBtn);
+					todoList.appendChild(newLi);
+
+					newLabel.addEventListener("dblclick", editTodo);
+
+					//newLi.addEventListener("dblclick", editTodo);
+					newInputEdit.addEventListener("blur", saveTodoBlur);
+					newInputEdit.addEventListener("keyup", saveTodoEnter);
+					newInputToggle.addEventListener("click", completeTodo);
+					newBtn.addEventListener("click", destroy);
+				}
+
+				//add new-todo to localStorage
+				//storage.call(newLi, todo, false);
+				const todos = [...todoList.children];
+				//count
+				todos
+					.filter((todo) => {
+						return !todo.classList.contains("completed");
+					})
+					.forEach(() => count.call(this, true));
+				//if show clear complated button
+				if (
+					todos.filter((todo) => {
+						return todo.classList.contains("completed");
+					}).length
+				) {
+					showClearCompletedBtn(true);
+				}
+				//status check
+				const status = window.location.hash.substring(1);
+
+				switch (status) {
+					case "/":
+						filters
+							.find((a) => a.title.toUpperCase() === "ALL")
+							?.classList.add("selected");
+						break;
+					case "/active":
+						alert("active");
+						filters
+							.find((a) => a.title.toUpperCase() === "ACTIVE")
+							?.classList.add("selected");
+						break;
+					case "/completed":
+						filters
+							.find((a) => a.title.toUpperCase() === "COMPLETED")
+							?.classList.add("selected");
+						break;
+				}
+
+				checkStatus();
+			}
+
 			function handleHashChange(e) {
 				//TODO: Routing
+				//alert("hashChange");
+			}
+
+			function guid() {
+				return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+					/[xy]/g,
+					function (c) {
+						let r = (Math.random() * 16) | 0;
+						let v = c == "x" ? r : (r & 0x3) | 0x8;
+						return v.toString(16);
+					}
+				);
 			}
 
 			function checkStatus() {
@@ -144,6 +266,13 @@
 					showClearCompletedBtn(true);
 					//4.检查目前的状态：active completed
 					checkStatus();
+					//5.update localStorage
+					filterList.forEach((todo) =>
+						editCompleteStorage.call(
+							todo,
+							todo.firstElementChild.firstElementChild.checked
+						)
+					);
 				} else {
 					//1.去掉li上的completed class
 					const todos = [...todoList.children];
@@ -160,6 +289,13 @@
 					showClearCompletedBtn(false);
 					//4.检查目前的状态：active completed
 					checkStatus();
+					//5.update localStorage
+					filterList.forEach((todo) =>
+						editCompleteStorage.call(
+							todo,
+							todo.firstElementChild.firstElementChild.checked
+						)
+					);
 				}
 			}
 
@@ -223,6 +359,32 @@
 					return;
 				}
 
+				if (!todoList.children.length) {
+					//根据锚点设置初始状态和列表状态
+					//设置selected
+					//status check
+					const status = window.location.hash.substring(1);
+
+					switch (status) {
+						case "/":
+							filters
+								.find((a) => a.title.toUpperCase() === "ALL")
+								?.classList.add("selected");
+							break;
+						case "/active":
+							alert("active");
+							filters
+								.find((a) => a.title.toUpperCase() === "ACTIVE")
+								?.classList.add("selected");
+							break;
+						case "/completed":
+							filters
+								.find((a) => a.title.toUpperCase() === "COMPLETED")
+								?.classList.add("selected");
+							break;
+					}
+				}
+
 				e.target.value = "";
 				main.style.display = "block"; //TODO:  block when first todo is created
 				footer.style.display = "block"; //TODO: block when first todo is created
@@ -259,6 +421,19 @@
 				newBtn.addEventListener("click", destroy);
 
 				count.call(this, true); //true is increment, false is decrement
+
+				//add new-todo to localStorage
+				storage.call(newLi, todo, false);
+				//check status
+				checkStatus();
+			}
+
+			function storage(title, completed) {
+				//id, title, completed
+				const id = guid();
+				const newTodo = { id, title, completed };
+				this.id = id;
+				localStorage.setItem(`todos-${id}`, JSON.stringify(newTodo));
 			}
 
 			function count(isIncrement) {
@@ -286,6 +461,7 @@
 			}
 
 			function saveTodoBlur(e) {
+				console.log("hi blur");
 				saveTodo.call(this, e);
 			}
 
@@ -294,6 +470,8 @@
 
 				if (todo.length === 0) {
 					const curLi = this.parentNode;
+					//remove localStorage
+					removeStorage.call(this.parentNode);
 					//前提：是未complated的元素，count要减一
 					if (!curLi.classList.contains("completed")) {
 						count.call(this, false);
@@ -318,23 +496,48 @@
 					}
 					//destroy(this, e);
 				} else {
+					//TODO: a bug: 执行以下代码后会触发blur事件
 					//remove 'editing' class
 					this.parentNode.classList.remove("editing");
 					this.parentNode
 						.querySelector(".view")
 						.querySelector("label").innerHTML = todo;
+					//edit localStorage
+					editTitleStorage.call(this.parentNode, todo);
 				}
+			}
+
+			function removeStorage() {
+				localStorage.removeItem(`todos-${this.id}`);
+			}
+
+			function editTitleStorage(value) {
+				//get storage
+				const item = JSON.parse(localStorage.getItem(`todos-${this.id}`));
+				item.title = value;
+				localStorage.setItem(`todos-${this.id}`, JSON.stringify(item));
+				//console.log(JSON.parse(localStorage.getItem(`todos-${this.id}`)));
+			}
+
+			function editCompleteStorage(value) {
+				const item = JSON.parse(localStorage.getItem(`todos-${this.id}`));
+				console.log(`item:${item}`);
+				item.completed = value;
+				localStorage.setItem(`todos-${this.id}`, JSON.stringify(item));
 			}
 
 			function saveTodoEnter(e) {
 				if (e.keyCode !== ENTER_KEY) {
 					return;
 				}
+				console.log("hi enter");
 				saveTodo.call(this, e);
 			}
 
 			function destroy(e) {
 				const curLi = this.parentNode.parentNode;
+				//remove storage
+				removeStorage.call(this.parentNode.parentNode);
 				//前提：是未complated的元素，count要减一
 				if (!curLi.classList.contains("completed")) {
 					count.call(this, false);
@@ -356,7 +559,6 @@
 						showClearCompletedBtn(false);
 					}
 				}
-				//检查是否需要隐藏 clear completed button
 			}
 
 			function showClearCompletedBtn(isShow) {
@@ -379,6 +581,8 @@
 						todos.length ===
 						todos.filter((todo) => todo.classList.contains("completed")).length;
 					//console.log(toggleAll.checked);
+					//update localStorage
+					editCompleteStorage.call(this.parentNode.parentNode, this.checked);
 				} else {
 					this.parentNode.parentNode.classList.remove("completed");
 					count.call(this, true);
@@ -396,6 +600,8 @@
 						todos.length ===
 						todos.filter((todo) => todo.classList.contains("completed")).length;
 					//console.log(toggleAll.checked);
+					//update localStorage
+					editCompleteStorage.call(this.parentNode.parentNode, this.checked);
 				}
 			}
 
@@ -406,6 +612,9 @@
 				const filterTodos = todos.filter((todo) =>
 					todo.classList.contains("completed")
 				);
+				//remove storage
+				filterTodos.forEach((todo) => removeStorage.call(todo));
+				//删除元素
 				filterTodos.forEach((todo) => todo.remove());
 				//3.检查是否还有剩余todo，没有的话，隐藏footer/main
 				if (todos.length === filterTodos.length) {
