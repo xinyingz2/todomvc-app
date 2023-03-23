@@ -60,18 +60,12 @@
 		</footer>
 		<!-- Scripts here. Don't remove ↓ -->
 		<script src="node_modules/todomvc-common/base.js"></script>
-		<!-- <script src="node_modules/nanoid/nanoid.js"></script> -->
-		<!-- 		<script type="module" src="js/modules/random.js"></script> -->
-		<!-- <script type="module">
-			import { nanoid } from "./js/modules/random.js";
-			alert(nanoid());
-		</script> -->
 		<script src="js/app.js"></script>
 
 		<script>
+			const ENTER_KEY = 13;
 			window.addEventListener("load", load);
 			window.addEventListener("hashchange", handleHashChange);
-			const ENTER_KEY = 13;
 			const footer = document.querySelector(".footer");
 			const main = document.querySelector(".main");
 			const todoList = document.querySelector(".todo-list");
@@ -620,20 +614,3 @@
 		</script>
 	</body>
 </html>
-
-<!-- <li class="completed">
-	<div class="view">
-		<input class="toggle" type="checkbox" checked />
-		<label>Taste JavaScript</label>
-		<button class="destroy"></button>
-	</div>
-	<input class="edit" value="Create a TodoMVC template" />
-</li>
-<li>
-	<div class="view">
-		<input class="toggle" type="checkbox" />
-		<label>Buy a unicorn</label>
-		<button class="destroy"></button>
-	</div>
-	<input class="edit" value="Rule the web" />
-</li> -->
