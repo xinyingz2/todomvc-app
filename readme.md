@@ -1,35 +1,11 @@
 # Framework Name • [TodoMVC](http://todomvc.com)
 
-> Official description of the framework (from its website)
-
-
-## Resources
-
-- [Website]()
-- [Documentation]()
-- [Used by]()
-- [Blog]()
-- [FAQ]()
-
-### Articles
-
-- [Interesting article]()
-
-### Support
-
-- [Stack Overflow](http://stackoverflow.com/questions/tagged/__)
-- [Google Groups]()
-- [Twitter](http://twitter.com/__)
-- [Google+]()
-
-*Let us [know](https://github.com/tastejs/todomvc/issues) if you discover anything worth sharing.*
-
-
 ## Implementation
 
-How was the app created? Anything worth sharing about the process of creating the app? Any spec violations?
+The overall design is centered on creating a state-driven app. Since it is written purely with native JS, it is important to address the paradox of state management as well as DOM rendering at the same time. Therefore, in this purejs version, I use `setState` as a hook to indicate state changes, and thereby triggering rendering and other following actions.
 
+Another detail that is worthing mentioning here is that every time the app get rerendered, every todo on the DOM gets replaced. This is a simple way to ensure todo's correctly reflects the state changes.
 
-## Credit
+## Usage
 
-Created by [Your Name](http://your-website.com)
+Clone the repo and `npm install` the dependency packages.
